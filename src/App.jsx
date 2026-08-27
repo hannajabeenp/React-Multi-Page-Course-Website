@@ -1,38 +1,56 @@
-import { Routes, Route } from "react-router-dom";
-
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-
-import Home from "./pages/Home";
-import Courses from "./pages/Courses";
-import CourseDetails from "./pages/CourseDetails";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import { useState } from "react";
+import StudentForm from "./components/StudentForm";
+import StudentList from "./components/StudentList";
+import {
+  addStudent,
+  updateStudent,
+} from "./services/studentApi";
 
 function App() {
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [refresh, setRefresh] = useState(0);
+
+  const handleStudentSaved = async (studentData) => {
+    try {
+      if (editingStudent) {
+        await updateStudent(editingStudent._id, studentData);
+        alert("Student updated successfully.");
+        setEditingStudent(null);
+      } else {
+        await addStudent(studentData);
+        alert("Student added successfully.");
+      }
+
+      setRefresh((previous) => previous + 1);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to save student.");
+    }
+  };
+
+  const handleEdit = (student) => {
+    setEditingStudent(student);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStudent(null);
+  };
+
   return (
-    <>
-      <Navbar />
+    <div>
+      <h1>Student Management System</h1>
 
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          
-          <Route path="/courses" element={<Courses />} />
-          
-          <Route
-            path="/courses/:id"
-            element={<CourseDetails />}
-          />
-          
-          <Route path="/about" element={<About />} />
-          
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </main>
+      <StudentForm
+        onStudentSaved={handleStudentSaved}
+        editingStudent={editingStudent}
+        onCancelEdit={handleCancelEdit}
+      />
 
-      <Footer />
-    </>
+      <StudentList
+        onEdit={handleEdit}
+        refresh={refresh}
+      />
+    </div>
   );
 }
 
